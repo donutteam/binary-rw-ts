@@ -5,5 +5,8 @@ This is largely based upon the [io.js](https://github.com/Kuree/ts-sims4/blob/ma
 
 Basically, this package exists to provide a standalone, installable version of that file.
 
+# Changelog
+[Changelog](https://github.com/donutteam/npm-binary-rw/blob/main/CHANGELOG.md)
+
 # License
 [MIT](https://github.com/donutteam/npm-binary-rw/blob/main/LICENSE.md)
