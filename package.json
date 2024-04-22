@@ -5,7 +5,8 @@
 	"main": "./build/index.js",
 	"scripts": {
 		"build": "npx rimraf build && npx tsc",
-		"build:watch": "npx rimraf build && npx tsc --watch"
+		"build:watch": "npx rimraf build && npx tsc --watch",
+		"prepublishOnly": "npm run build"
 	},
 	"keywords": [
 		"binary",
@@ -14,13 +15,13 @@
 	],
 	"author": "Donut Team",
 	"license": "MIT",
+	"dependencies": {
+		"@types/utf8": "^3.0.3",
+		"utf8": "^3.0.0"
+	},
 	"devDependencies": {
 		"@donutteam/typescript-config": "^1.0.0",
 		"rimraf": "^5.0.5",
 		"typescript": "^5.4.5"
-	},
-	"dependencies": {
-		"@types/utf8": "^3.0.3",
-		"utf8": "^3.0.0"
 	}
 }
