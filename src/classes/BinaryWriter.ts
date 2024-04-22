@@ -137,16 +137,20 @@ export class BinaryWriter
 		this.writeBytes(array);
 	}
 
-	writeBytes(bytes : Uint8Array)
+	writeBytes(bytes : Uint8Array | ArrayBuffer)
 	{
-		this.checkSize(bytes.length);
+		const bytesToWrite = bytes instanceof ArrayBuffer
+			? new Uint8Array(bytes)
+			: bytes;
 
-		for (let i = 0; i < bytes.length; i++)
+		this.checkSize(bytesToWrite.length);
+
+		for (let i = 0; i < bytesToWrite.length; i++)
 		{
-			this.buffer[this.position + i] = bytes[i]!;
+			this.buffer[this.position + i] = bytesToWrite[i]!;
 		}
 
-		this.position += bytes.length;
+		this.position += bytesToWrite.length;
 
 		this.length = Math.max(this.length, this.position);
 	}
