@@ -10,7 +10,7 @@ import { BinaryReader } from "./BinaryReader.js";
 
 export class BitConverter
 {
-	static readNumber(data : Uint8Array | Blob, offset : number, size : number, signed : boolean)
+	static readNumber(data : Uint8Array, offset : number, size : number, signed : boolean)
 	{
 		const br = new BinaryReader(data);
 
@@ -34,22 +34,22 @@ export class BitConverter
 		}
 	}
 
-	static toUInt16(data : Uint8Array | Blob, offset : number)
+	static toUInt16(data : Uint8Array, offset : number)
 	{
 		return BitConverter.readNumber(data, offset, 16, false);
 	}
 
-	static toInt16(data : Uint8Array | Blob, offset : number)
+	static toInt16(data : Uint8Array, offset : number)
 	{
 		return BitConverter.readNumber(data, offset, 16, true);
 	}
 
-	static toUInt32(data : Uint8Array | Blob, offset : number)
+	static toUInt32(data : Uint8Array, offset : number)
 	{
 		return BitConverter.readNumber(data, offset, 32, false);
 	}
 
-	static toInt32(data : Uint8Array | Blob, offset : number)
+	static toInt32(data : Uint8Array, offset : number)
 	{
 		return BitConverter.readNumber(data, offset, 32, true);
 	}

@@ -6,7 +6,7 @@ import * as utf8 from "utf8";
 
 import { UInt64 } from "./UInt64.js";
 
-import { convertToUint8Array, shuffle } from "../libs/io.js";
+import { shuffle } from "../libs/io.js";
 
 //
 // Class
@@ -14,15 +14,17 @@ import { convertToUint8Array, shuffle } from "../libs/io.js";
 
 export class BinaryReader
 {
-	buffer : Uint8Array | Blob;
+	buffer : Uint8Array;
 
 	isLittleEndian : boolean;
 
 	position : number;
 
-	constructor(data : Blob | Uint8Array, isLittleEndian = true)
+	constructor(data : ArrayBuffer | Uint8Array, isLittleEndian = true)
 	{
-		this.buffer = data;
+		this.buffer = data instanceof ArrayBuffer
+			? new Uint8Array(data)
+			: data;
 
 		this.isLittleEndian = isLittleEndian;
 
@@ -42,8 +44,6 @@ export class BinaryReader
 		let small : number;
 
 		let big : number;
-
-		const bits = 64;
 
 		if (this.isLittleEndian)
 		{
@@ -130,9 +130,7 @@ export class BinaryReader
 
 	getSize() : number
 	{
-		return this.buffer instanceof Uint8Array
-			? this.buffer.length
-			: this.buffer.size;
+		return this.buffer.length;
 	}
 
 	read7BitLength() : number
@@ -177,7 +175,7 @@ export class BinaryReader
 
 		for (let i = 0; i < bytes.length;)
 		{
-			str += String.fromCharCode(bytes[i++] * 256 + bytes[i++]);
+			str += String.fromCharCode(bytes[i++]! * 256 + bytes[i++]!);
 		}
 
 		return str;
@@ -212,6 +210,7 @@ export class BinaryReader
 
 	readByte(i : number, size : number) : number
 	{
+		// @ts-ignore EVIL HACK
 		return this.buffer[this.position + size - i - 1] & 0xff;
 	}
 
@@ -224,15 +223,11 @@ export class BinaryReader
 
 		this.checkSize(size * 8);
 
-		const bytearray = this.buffer instanceof Uint8Array
-			? this.buffer.subarray(this.position, this.position + size)
-			: this.buffer.slice(this.position, this.position + size);
+		const bytearray = this.buffer.subarray(this.position, this.position + size);
 
 		this.position += size;
 
-		return bytearray instanceof Uint8Array
-			? bytearray
-			: convertToUint8Array(bytearray);
+		return bytearray;
 	}
 
 	readChar() : string
@@ -273,7 +268,7 @@ export class BinaryReader
 
 		for (let i = 0; i < length; i++)
 		{
-			str += String.fromCharCode(bytes[i]);
+			str += String.fromCharCode(bytes[i]!);
 		}
 
 		return utf8.decode(str);

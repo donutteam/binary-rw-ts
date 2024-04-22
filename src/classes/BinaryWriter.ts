@@ -43,12 +43,12 @@ export class BinaryWriter
 
 		for (let i = 0; i < src1.length; i++)
 		{
-			dest[i] = src1[i];
+			dest[i] = src1[i]!;
 		}
 
 		for (let i = 0; i < src2.length; i++)
 		{
-			dest[i + src1.length] = src2[i];
+			dest[i + src1.length] = src2[i]!;
 		}
 
 		return dest;
@@ -143,7 +143,7 @@ export class BinaryWriter
 
 		for (let i = 0; i < bytes.length; i++)
 		{
-			this.buffer[this.position + i] = bytes[i];
+			this.buffer[this.position + i] = bytes[i]!;
 		}
 
 		this.position += bytes.length;

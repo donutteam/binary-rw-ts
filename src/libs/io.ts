@@ -2,25 +2,6 @@
 // Functions
 //
 
-export function convertToUint8Array(blob : Blob | Uint8Array)
-{
-	const result = blob instanceof Uint8Array
-		? blob
-		: new Uint8Array(blob.size);
-
-	if (blob instanceof Uint8Array)
-	{
-		return blob; // return directly
-	}
-
-	for (let i = 0; i < result.length; i++)
-	{
-		result[i] = blob[i];
-	}
-
-	return result;
-}
-
 export function padString(inputString : string, width : number, padding = "0")
 {
 	return inputString.length >= width
