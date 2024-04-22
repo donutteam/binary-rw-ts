@@ -1,0 +1,14 @@
+{
+	"extends": "@donutteam/typescript-config",
+	"compilerOptions": {
+		"rootDir": "./src",
+		"outDir": "./build",
+
+		"lib": [
+			"dom",
+			"esnext"
+		],
+
+		"verbatimModuleSyntax": false
+	}
+}
