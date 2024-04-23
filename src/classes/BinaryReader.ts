@@ -235,9 +235,10 @@ export class BinaryReader
 		return this.readString(1);
 	}
 
+	/** @deprecated */
 	readDouble() : number
 	{
-		return this.decodeFloat(52, 11);
+		return this.readFloat64();
 	}
 
 	/** @deprecated */
@@ -249,6 +250,11 @@ export class BinaryReader
 	readFloat32() : number
 	{
 		return this.decodeFloat(23, 8);
+	}
+
+	readFloat64() : number
+	{
+		return this.decodeFloat(52, 11);
 	}
 
 	readInt8() : number

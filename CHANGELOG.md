@@ -1,4 +1,9 @@
 # Changelog
+## 1.3.0
+
+* Renamed BinaryReader.readDouble to BinaryReader.readFloat64.
+	* The old name is still available for backwards compatibility but is deprecated.
+
 ## 1.2.0
 
 * Renamed BinaryReader.readFloat to BinaryReader.readFloat32.
