@@ -1,4 +1,11 @@
 # Changelog
+## 1.2.0
+
+* Renamed BinaryReader.readFloat to BinaryReader.readFloat32.
+	* The old name is still available for backwards compatibility but is deprecated.
+* Added BinaryWriter.writeFloat32.
+* Added BinaryWriter.writeFloat64.
+
 ## 1.1.0
 Made `BinaryWriter.writeBytes` support taking an `ArrayBuffer`.
 

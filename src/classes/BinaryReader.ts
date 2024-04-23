@@ -240,7 +240,13 @@ export class BinaryReader
 		return this.decodeFloat(52, 11);
 	}
 
+	/** @deprecated */
 	readFloat() : number
+	{
+		return this.readFloat32();
+	}
+
+	readFloat32() : number
 	{
 		return this.decodeFloat(23, 8);
 	}

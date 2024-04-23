@@ -155,6 +155,38 @@ export class BinaryWriter
 		this.length = Math.max(this.length, this.position);
 	}
 
+	writeFloat32(num : number)
+	{
+		let floatArray = new Float32Array(1);
+
+		floatArray[0] = num;
+
+		let bytes = new Uint8Array(floatArray.buffer);
+
+		if (!this.isLittleEndian)
+		{
+			bytes = bytes.toReversed();
+		}
+
+		this.writeBytes(bytes);
+	}
+
+	writeFloat64(num : number)
+	{
+		let floatArray = new Float64Array(1);
+
+		floatArray[0] = num;
+
+		let bytes = new Uint8Array(floatArray.buffer);
+
+		if (!this.isLittleEndian)
+		{
+			bytes = bytes.toReversed();
+		}
+
+		this.writeBytes(bytes);
+	}
+
 	writeInt8(num : number)
 	{
 		this.encodeInt(num, 8, true);
