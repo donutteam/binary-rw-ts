@@ -21,6 +21,7 @@
 	* Made `checkSize` method private.
 	* Made `expand` method private.
 	* Made `encodeInt` method private.
+* Removed `BitConverter` class.
 
 ## 1.3.0
 
