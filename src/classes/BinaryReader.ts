@@ -1,4 +1,10 @@
 //
+// Imports
+//
+
+import * as DataSizes from "../data/data-sizes.js";
+
+//
 // Class
 //
 
@@ -40,6 +46,8 @@ export class BinaryReader
 
 	readBytes(size : number) : Uint8Array
 	{
+		this.#checkSize(size);
+
 		let bytes = new Uint8Array(size);
 
 		for (let i = 0; i < size; i++)
@@ -52,60 +60,74 @@ export class BinaryReader
 
 	readFloat32() : number
 	{
+		this.#checkSize(DataSizes.FLOAT32);
+
 		const float = this.#dataView.getFloat32(this.#position, this.isLittleEndian);
 
-		this.#position += 4;
+		this.#position += DataSizes.FLOAT32;
 
 		return float;
 	}
 
 	readFloat64() : number
 	{
+		this.#checkSize(DataSizes.FLOAT64);
+
 		const float = this.#dataView.getFloat64(this.#position, this.isLittleEndian);
 
-		this.#position += 8;
+		this.#position += DataSizes.FLOAT64;
 
 		return float;
 	}
 
 	readInt8() : number
 	{
+		this.#checkSize(DataSizes.INT8);
+
 		const int = this.#dataView.getInt8(this.#position);
 
-		this.#position += 1;
+		this.#position += DataSizes.INT8;
 
 		return int;
 	}
 
 	readInt16() : number
 	{
+		this.#checkSize(DataSizes.INT16);
+
 		const int = this.#dataView.getInt16(this.#position, this.isLittleEndian);
 
-		this.#position += 2;
+		this.#position += DataSizes.INT16;
 
 		return int;
 	}
 
 	readInt32() : number
 	{
+		this.#checkSize(DataSizes.INT32);
+
 		const int = this.#dataView.getInt32(this.#position, this.isLittleEndian);
 
-		this.#position += 4;
+		this.#position += DataSizes.INT32;
 
 		return int;
 	}
 
 	readInt64() : bigint
 	{
+		this.#checkSize(DataSizes.INT64);
+
 		const bigInt = this.#dataView.getBigInt64(this.#position, this.isLittleEndian);
 
-		this.#position += 8;
+		this.#position += DataSizes.INT64;
 
 		return bigInt;
 	}
 
 	readString(length : number) : string
 	{
+		this.#checkSize(length);
+
 		const bytes = this.readBytes(length);
 
 		return new TextDecoder("utf-8").decode(bytes);
@@ -113,54 +135,70 @@ export class BinaryReader
 
 	readUInt8() : number
 	{
+		this.#checkSize(DataSizes.UINT8);
+
 		const int = this.#dataView.getUint8(this.#position);
 
-		this.#position += 1;
+		this.#position += DataSizes.UINT8;
 
 		return int;
 	}
 
 	readUInt16() : number
 	{
+		this.#checkSize(DataSizes.UINT16);
+
 		const int = this.#dataView.getUint16(this.#position, this.isLittleEndian);
 
-		this.#position += 2;
+		this.#position += DataSizes.UINT16;
 
 		return int;
 	}
 
 	readUInt32() : number
 	{
+		this.#checkSize(DataSizes.UINT32);
+
 		const int = this.#dataView.getUint32(this.#position, this.isLittleEndian);
 
-		this.#position += 4;
+		this.#position += DataSizes.UINT32;
 
 		return int;
 	}
 
 	readUInt64() : bigint
 	{
+		this.#checkSize(DataSizes.UINT64);
+
 		const bigInt = this.#dataView.getBigUint64(this.#position, this.isLittleEndian);
 
-		this.#position += 8;
+		this.#position += DataSizes.UINT64;
 
 		return bigInt;
 	}
 
 	seek(position : number) : void
 	{
-		this.#position = position;
+		if (position < 0 || position >= this.getLength())
+		{
+			throw new RangeError("Seek position out of range.");
+		}
 
-		this.#checkSize(0);
+		this.#position = position;
 	}
 
-	#checkSize(neededBits : number) : void
+	seekOffset(offset : number) : void
 	{
-		if (!(this.#position + Math.ceil(neededBits / 8) <= this.getLength()))
-		{
-			const availableBits = this.getLength() - this.#position;
+		this.seek(this.#position + offset);
+	}
 
-			throw new Error("Operation requires an additional " + neededBits + " bits but only " + availableBits + " bits are available.");
+	#checkSize(neededBytes : number) : void
+	{
+		const availableBytes = this.getLength() - this.#position;
+
+		if (neededBytes > availableBytes)
+		{
+			throw new Error("Operation requires an additional " + neededBytes + " bytes but only " + availableBytes + " bytes are available.");
 		}
 	}
 }
