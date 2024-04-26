@@ -52,6 +52,7 @@ export class BinaryReader
 
 		for (let i = 0; i < size; i++)
 		{
+			// Note: readUint8 updates the position
 			bytes[i] = this.readUInt8();
 		}
 
