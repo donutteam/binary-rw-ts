@@ -1,27 +1,12 @@
 # Changelog
 ## 2.0.0
 
-* Modified the `BinaryReader` class:
-	* Made `buffer` member private and readonly.
-	* Made `position` member private.
-	* Made `checkSize` method private.
-	* Made `decodeBigNumber` method private.
-	* Made `decodeFloat` method private.
-	* Made `decodeInt` method private.
-	* Made `readBits` method private.
-	* Made `readByte` method private.
-	* Removed `readDouble` method. Use `readFloat32` instead.
-	* Removed `readFloat` method. Use `readFloat64` instead.
-* Modified the `BinaryWriter` class:
-	* Made `isLittleEndian` readonly.
-	* Made `buffer` member private.
-	* Made `length` member private.
-	* Made `position` member private.
-	* Made `arrayCopy` method private.
-	* Made `checkSize` method private.
-	* Made `expand` method private.
-	* Made `encodeInt` method private.
-* Removed `BitConverter` class.
+* Rewrote the `BinaryReader` class to use a DataView.
+* Rewrote the `BinaryWriter` class to use a DataView.
+* Removed the `BitConverter` class.
+* Removed the `UInt64` class. This library now uses the native `BigInt` type.
+* Removed the `padString` function.
+* Removed the `shuffle` function.
 
 ## 1.3.0
 

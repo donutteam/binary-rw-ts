@@ -1,30 +1,27 @@
 //
-// Imports
-//
-
-import * as utf8 from "utf8";
-
-import { UInt64 } from "./UInt64.js";
-
-import { shuffle } from "../libs/io.js";
-
-//
 // Class
 //
 
 export class BinaryReader
 {
+	static typedArrayToBuffer(array : Uint8Array) : ArrayBuffer
+	{
+		return array.buffer.slice(array.byteOffset, array.byteLength + array.byteOffset);
+	}
+
 	isLittleEndian : boolean;
 
-	readonly #buffer : Uint8Array;
+	readonly #dataView : DataView;
 
 	#position : number;
 
 	constructor(data : ArrayBuffer | Uint8Array, isLittleEndian = true)
 	{
-		this.#buffer = data instanceof ArrayBuffer
-			? new Uint8Array(data)
-			: data;
+		const arrayBuffer = data instanceof ArrayBuffer
+			? data
+			: BinaryReader.typedArrayToBuffer(data);
+
+		this.#dataView = new DataView(arrayBuffer);
 
 		this.isLittleEndian = isLittleEndian;
 
@@ -36,137 +33,118 @@ export class BinaryReader
 		return this.#position;
 	}
 
-	getSize() : number
+	getLength() : number
 	{
-		return this.#buffer.length;
-	}
-
-	read7BitLength() : number
-	{
-		let length = 0;
-
-		let i = 0;
-
-		while (true)
-		{
-			const byte = this.readUInt8();
-
-			const num = byte & 0x7F;
-
-			if (byte & 0x80)
-			{
-				length += num << i;
-
-				i += 7;
-			}
-			else
-			{
-				length += num << i;
-
-				break;
-			}
-		}
-
-		return length;
-	}
-
-	read7bitString() : string
-	{
-		// whoever decided to use 7-bit encoding to encode string length is stupid.
-		// whoever makes their program generates such long string is even worse.
-
-		const length = this.read7BitLength();
-
-		const bytes = this.readBytes(length);
-
-		let str = "";
-
-		for (let i = 0; i < bytes.length;)
-		{
-			str += String.fromCharCode(bytes[i++]! * 256 + bytes[i++]!);
-		}
-
-		return str;
+		return this.#dataView.byteLength;
 	}
 
 	readBytes(size : number) : Uint8Array
 	{
-		if (size === 0)
+		let bytes = new Uint8Array(size);
+
+		for (let i = 0; i < size; i++)
 		{
-			return new Uint8Array(0);
+			bytes[i] = this.readUInt8();
 		}
 
-		this.#checkSize(size * 8);
-
-		const bytearray = this.#buffer.subarray(this.#position, this.#position + size);
-
-		this.#position += size;
-
-		return bytearray;
-	}
-
-	readChar() : string
-	{
-		return this.readString(1);
+		return bytes;
 	}
 
 	readFloat32() : number
 	{
-		return this.#decodeFloat(23, 8);
+		const float = this.#dataView.getFloat32(this.#position, this.isLittleEndian);
+
+		this.#position += 4;
+
+		return float;
 	}
 
 	readFloat64() : number
 	{
-		return this.#decodeFloat(52, 11);
+		const float = this.#dataView.getFloat64(this.#position, this.isLittleEndian);
+
+		this.#position += 8;
+
+		return float;
 	}
 
 	readInt8() : number
 	{
-		return this.#decodeInt(8, true);
+		const int = this.#dataView.getInt8(this.#position);
+
+		this.#position += 1;
+
+		return int;
 	}
 
 	readInt16() : number
 	{
-		return this.#decodeInt(16, true);
+		const int = this.#dataView.getInt16(this.#position, this.isLittleEndian);
+
+		this.#position += 2;
+
+		return int;
 	}
 
 	readInt32() : number
 	{
-		return this.#decodeInt(32, true);
+		const int = this.#dataView.getInt32(this.#position, this.isLittleEndian);
+
+		this.#position += 4;
+
+		return int;
+	}
+
+	readInt64() : bigint
+	{
+		const bigInt = this.#dataView.getBigInt64(this.#position, this.isLittleEndian);
+
+		this.#position += 8;
+
+		return bigInt;
 	}
 
 	readString(length : number) : string
 	{
 		const bytes = this.readBytes(length);
 
-		let str = "";
-
-		for (let i = 0; i < length; i++)
-		{
-			str += String.fromCharCode(bytes[i]!);
-		}
-
-		return utf8.decode(str);
+		return new TextDecoder("utf-8").decode(bytes);
 	}
 
 	readUInt8() : number
 	{
-		return this.#decodeInt(8, false);
+		const int = this.#dataView.getUint8(this.#position);
+
+		this.#position += 1;
+
+		return int;
 	}
 
 	readUInt16() : number
 	{
-		return this.#decodeInt(16, false);
+		const int = this.#dataView.getUint16(this.#position, this.isLittleEndian);
+
+		this.#position += 2;
+
+		return int;
 	}
 
 	readUInt32() : number
 	{
-		return this.#decodeInt(32, false);
+		const int = this.#dataView.getUint32(this.#position, this.isLittleEndian);
+
+		this.#position += 4;
+
+		return int;
 	}
 
-	readUInt64() : UInt64
+	readUInt64() : bigint
 	{
-		return this.#decodeBigNumber();
+		const bigInt = this.#dataView.getBigUint64(this.#position, this.isLittleEndian);
+
+		this.#position += 8;
+
+		return bigInt;
 	}
 
 	seek(position : number) : void
@@ -178,135 +156,11 @@ export class BinaryReader
 
 	#checkSize(neededBits : number) : void
 	{
-		if (!(this.#position + Math.ceil(neededBits / 8) <= this.getSize()))
+		if (!(this.#position + Math.ceil(neededBits / 8) <= this.getLength()))
 		{
-			throw new Error("Index out of bound. Needs " + neededBits + " left: " + (this.getSize() - this.#position + Math.ceil(neededBits / 8)) + " pos: " + this.#position + " buf_length: " + this.getSize());
+			const availableBits = this.getLength() - this.#position;
+
+			throw new Error("Operation requires an additional " + neededBits + " bits but only " + availableBits + " bits are available.");
 		}
-	}
-
-	#decodeBigNumber() : UInt64
-	{
-		let small : number;
-
-		let big : number;
-
-		if (this.isLittleEndian)
-		{
-			small = this.readUInt32();
-			big = this.readUInt32();
-		}
-		else
-		{
-			big = this.readUInt32();
-			small = this.readUInt32();
-		}
-
-		return new UInt64(big, small);
-	}
-
-	#decodeFloat(precisionBits : number, exponentBits : number) : number
-	{
-		const length = precisionBits + exponentBits + 1;
-
-		const size = length >> 3;
-
-		this.#checkSize(length);
-
-		const bias = Math.pow(2, exponentBits - 1) - 1;
-
-		const signal = this.#readBits(precisionBits + exponentBits, 1, size);
-
-		const exponent = this.#readBits(precisionBits, exponentBits, size);
-
-		let significand = 0;
-
-		let divisor = 2;
-
-		let currentByte = 0;
-
-		let startBit : number;
-
-		do
-		{
-			const byteValue = this.#readByte(++currentByte, size);
-
-			startBit = precisionBits % 8 || 8;
-
-			let mask = 1 << startBit;
-
-			while (mask >>= 1)
-			{
-				if (byteValue & mask)
-				{
-					significand += 1 / divisor;
-				}
-
-				divisor *= 2;
-			}
-		} while (precisionBits -= startBit);
-
-		this.#position += size;
-
-		return exponent == (bias << 1) + 1 ? significand ? NaN : signal ? -Infinity : +Infinity
-			: (1 + signal * -2) * (exponent || significand ? !exponent ? Math.pow(2, -bias + 1) * significand
-			: Math.pow(2, exponent - bias) * (1 + significand) : 0);
-	}
-
-	#decodeInt(bits : number, signed : boolean) : number
-	{
-		let x = this.#readBits(0, bits, bits / 8), max = Math.pow(2, bits);
-
-		if (!this.isLittleEndian)
-		{
-			x = shuffle(x, bits);
-		}
-
-		const result = signed && x >= max / 2 ? x - max : x;
-
-		this.#position += bits / 8;
-
-		return result;
-	}
-
-	#readBits(start : number, length : number, size : number) : number
-	{
-		const offsetLeft = (start + length) % 8;
-
-		const offsetRight = start % 8;
-
-		const currentByte = size - (start >> 3) - 1;
-
-		let lastByte = size + (-(start + length) >> 3);
-
-		let diff = currentByte - lastByte;
-
-		let sum = (this.#readByte(currentByte, size) >> offsetRight) & ((1 << (diff ? 8 - offsetRight : length)) - 1);
-
-		if (diff && offsetLeft)
-		{
-			sum += (this.#readByte(lastByte++, size) & ((1 << offsetLeft) - 1)) << (diff-- << 3) - offsetRight;
-		}
-
-		while (diff)
-		{
-			sum += this.#shiftLeft(this.#readByte(lastByte++, size), (diff-- << 3) - offsetRight);
-		}
-
-		return sum;
-	}
-
-	#readByte(i : number, size : number) : number
-	{
-		// @ts-ignore EVIL HACK
-		return this.#buffer[this.#position + size - i - 1] & 0xff;
-	}
-
-	#shiftLeft(a : number, b : number) : number
-	{
-		for (++b; --b; a = ((a %= 0x7fffffff + 1) & 0x40000000) == 0x40000000 ? a * 2 : (a - 0x40000000) * 2 + 0x7fffffff + 1)
-		{
-		}
-
-		return a;
 	}
 }

@@ -1,76 +1,56 @@
 //
-// Imports
-//
-
-import * as utf8 from "utf8";
-
-import { UInt64 } from "./UInt64.js";
-
-import { shuffle } from "../libs/io.js";
-
-//
 // Class
 //
-
 
 export class BinaryWriter
 {
 	readonly isLittleEndian : boolean;
 
-	#buffer : Uint8Array;
+	#dataView : DataView;
 
 	#length : number;
 
 	#position : number;
 
-	constructor(size = 65536, isLittleEndian = true)
+	constructor(isLittleEndian = true)
 	{
-		this.#buffer = new Uint8Array(size);
-
 		this.isLittleEndian = isLittleEndian;
+
+		const arrayBuffer = new ArrayBuffer(65536);
+
+		this.#dataView = new DataView(arrayBuffer);
 
 		this.#length = 0;
 
 		this.#position = 0;
 	}
 
-	getBuffer()
+	getBuffer() : ArrayBuffer
 	{
-		return this.#buffer.slice(0, this.#length);
+		return this.#dataView.buffer.slice(0, this.#length);
 	}
 
-	getPosition()
+	getPosition() : number
 	{
 		return this.#position;
 	}
 
-	getLength()
+	getLength() : number
 	{
 		return this.#length;
 	}
 
-	seek(pos : number)
+	seek(pos : number) : void
 	{
 		if (pos >= this.#length)
 		{
-			throw new RangeError("Buffer outside of range");
+			throw new RangeError("Seek position out of range.");
 		}
 
 		this.#position = pos;
 	}
 
-	writeByte(byte : number)
-	{
-		let data = byte & 0xFF;
-
-		let array = new Uint8Array(1);
-
-		array[0] = data;
-
-		this.writeBytes(array);
-	}
-
-	writeBytes(bytes : Uint8Array | ArrayBuffer)
+	writeBytes(bytes : Uint8Array | ArrayBuffer) : void
 	{
 		const bytesToWrite = bytes instanceof ArrayBuffer
 			? new Uint8Array(bytes)
@@ -80,7 +60,7 @@ export class BinaryWriter
 
 		for (let i = 0; i < bytesToWrite.length; i++)
 		{
-			this.#buffer[this.#position + i] = bytesToWrite[i]!;
+			this.#dataView.setUint8(this.#position + i, bytesToWrite[i]!);
 		}
 
 		this.#position += bytesToWrite.length;
@@ -88,165 +68,122 @@ export class BinaryWriter
 		this.#length = Math.max(this.#length, this.#position);
 	}
 
-	writeFloat32(num : number)
+	writeFloat32(num : number) : void
 	{
-		let floatArray = new Float32Array(1);
+		this.#dataView.setFloat32(this.#position, num, this.isLittleEndian);
 
-		floatArray[0] = num;
+		this.#position += 4;
 
-		let bytes = new Uint8Array(floatArray.buffer);
+		this.#length = Math.max(this.#length, this.#position);
+	}
 
-		if (!this.isLittleEndian)
-		{
-			bytes = bytes.toReversed();
-		}
+	writeFloat64(num : number) : void
+	{
+		this.#dataView.setFloat64(this.#position, num, this.isLittleEndian);
 
+		this.#position += 8;
+
+		this.#length = Math.max(this.#length, this.#position);
+	}
+
+	writeInt8(num : number) : void
+	{
+		this.#dataView.setInt8(this.#position, num);
+
+		this.#position += 1;
+
+		this.#length = Math.max(this.#length, this.#position);
+	}
+
+	writeInt16(num : number) : void
+	{
+		this.#dataView.setInt16(this.#position, num, this.isLittleEndian);
+
+		this.#position += 2;
+
+		this.#length = Math.max(this.#length, this.#position);
+	}
+
+	writeInt32(num : number) : void
+	{
+		this.#dataView.setInt32(this.#position, num, this.isLittleEndian);
+
+		this.#position += 4;
+
+		this.#length = Math.max(this.#length, this.#position);
+	}
+
+	writeInt64(num : bigint) : void
+	{
+		this.#dataView.setBigInt64(this.#position, num, this.isLittleEndian);
+
+		this.#position += 8;
+
+		this.#length = Math.max(this.#length, this.#position);
+	}
+
+	writeString(str : string) : void
+	{
+		const textEncoder = new TextEncoder();
+
+		const bytes = textEncoder.encode(str);
+
+		// Note: writeBytes updates the length and position
 		this.writeBytes(bytes);
 	}
 
-	writeFloat64(num : number)
+	writeUInt8(num : number) : void
 	{
-		let floatArray = new Float64Array(1);
+		this.#dataView.setUint8(this.#position, num);
 
-		floatArray[0] = num;
+		this.#position += 1;
 
-		let bytes = new Uint8Array(floatArray.buffer);
-
-		if (!this.isLittleEndian)
-		{
-			bytes = bytes.toReversed();
-		}
-
-		this.writeBytes(bytes);
+		this.#length = Math.max(this.#length, this.#position);
 	}
 
-	writeInt8(num : number)
+	writeUInt16(num : number) : void
 	{
-		this.#encodeInt(num, 8, true);
+		this.#dataView.setUint16(this.#position, num, this.isLittleEndian);
+
+		this.#position += 2;
+
+		this.#length = Math.max(this.#length, this.#position);
 	}
 
-	writeInt16(num : number)
+	writeUInt32(num : number) : void
 	{
-		this.#encodeInt(num, 16, true);
+		this.#dataView.setUint32(this.#position, num, this.isLittleEndian);
+
+		this.#position += 4;
+
+		this.#length = Math.max(this.#length, this.#position);
 	}
 
-	writeInt32(num : number)
+	writeUInt64(num : bigint) : void
 	{
-		this.#encodeInt(num, 32, true);
+		this.#dataView.setBigUint64(this.#position, num, this.isLittleEndian);
+
+		this.#position += 8;
+
+		this.#length = Math.max(this.#length, this.#position);
 	}
 
-	writeString(str : string)
+	#checkSize(size : number) : void
 	{
-		const byteString = utf8.encode(str);
-
-		const bytes = new Uint8Array(byteString.length);
-
-		for (let i = 0; i < bytes.length; i++)
-		{
-			bytes[i] = byteString.charCodeAt(i);
-		}
-
-		this.writeBytes(bytes);
-	}
-
-	writeUInt8(num : number)
-	{
-		this.#encodeInt(num, 8, false);
-	}
-
-	writeUInt16(num : number)
-	{
-		this.#encodeInt(num, 16, false);
-	}
-
-	writeUInt32(num : number)
-	{
-		this.#encodeInt(num, 32, false);
-	}
-
-	writeUInt64(num : UInt64)
-	{
-		const hi = num.hi;
-
-		const lo = num.lo;
-
-		// Note: Updating position is handled by encodeInt
-		if (this.isLittleEndian)
-		{
-			this.#encodeInt(lo, 32, false);
-			this.#encodeInt(hi, 32, false);
-		}
-		else
-		{
-			this.#encodeInt(hi, 32, false);
-			this.#encodeInt(lo, 32, false);
-		}
-	}
-
-	#arrayCopy(src1 : Uint8Array, src2 : Uint8Array, dest? : Uint8Array)
-	{
-		if (!dest)
-		{
-			dest = new Uint8Array(src1.length + src2.length);
-		}
-
-		for (let i = 0; i < src1.length; i++)
-		{
-			dest[i] = src1[i]!;
-		}
-
-		for (let i = 0; i < src2.length; i++)
-		{
-			dest[i + src1.length] = src2[i]!;
-		}
-
-		return dest;
-	}
-
-	#checkSize(size : number)
-	{
-		if (size + this.#position >= this.#buffer.length)
+		if (size + this.#position >= this.#dataView.byteLength)
 		{
 			this.#expand();
 		}
 	}
 
-	#expand()
+	#expand() : void
 	{
-		const empty = new Uint8Array(this.#buffer.length);
+		const newSize = this.#dataView.byteLength * 2;
 
-		this.#buffer = this.#arrayCopy(this.#buffer, empty);
-	}
+		const newBuffer = new Uint8Array(newSize);
 
-	#encodeInt(num : number, size : number, signed : boolean)
-	{
-		if (size % 8 !== 0)
-		{
-			throw new TypeError("Invalid number size");
-		}
+		newBuffer.set(new Uint8Array(this.#dataView.buffer));
 
-		if (!this.isLittleEndian)
-		{
-			num = shuffle(num, size);
-		}
-
-		if (signed && num < 0)
-		{
-			const max = 0xFFFFFFFF >> (32 - size);
-
-			num = max + num + 1;
-		}
-
-		const numBytes = Math.floor(size / 8);
-		const array = new Uint8Array(numBytes);
-
-		for (let i = 0; i < numBytes; i++)
-		{
-			const shiftAmount = 8 * i;
-
-			array[i] = (num >> shiftAmount) & 0xFF;
-		}
-
-		this.writeBytes(array);
+		this.#dataView = new DataView(newBuffer.buffer);
 	}
 }

@@ -15,10 +15,6 @@
 	],
 	"author": "Donut Team",
 	"license": "MIT",
-	"dependencies": {
-		"@types/utf8": "^3.0.3",
-		"utf8": "^3.0.0"
-	},
 	"devDependencies": {
 		"@donutteam/typescript-config": "^1.0.0",
 		"rimraf": "^5.0.5",
