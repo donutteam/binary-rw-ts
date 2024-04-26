@@ -60,6 +60,11 @@ export class BinaryWriter
 		this.#position = pos;
 	}
 
+	seekOffset(offset : number) : void
+	{
+		this.seek(this.#position + offset);
+	}
+
 	writeBytes(bytes : Uint8Array | ArrayBuffer) : void
 	{
 		const bytesToWrite = bytes instanceof ArrayBuffer

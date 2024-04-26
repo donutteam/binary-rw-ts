@@ -52,9 +52,10 @@ export class BinaryReader
 
 		for (let i = 0; i < size; i++)
 		{
-			// Note: readUint8 updates the position
-			bytes[i] = this.readUInt8();
+			bytes[i] = this.#dataView.getUint8(this.#position + (i * DataSizes.UINT8));
 		}
+
+		this.#position += size;
 
 		return bytes;
 	}
@@ -127,8 +128,6 @@ export class BinaryReader
 
 	readString(length : number) : string
 	{
-		this.#checkSize(length);
-
 		const bytes = this.readBytes(length);
 
 		return new TextDecoder("utf-8").decode(bytes);
