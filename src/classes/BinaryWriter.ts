@@ -205,9 +205,9 @@ export class BinaryWriter
 
 	#checkSize(size : number) : void
 	{
-		const requiredSize = size + this.#position - this.#dataView.byteLength;
+		const requiredSize = size + this.#position;
 
-		if (size + this.#position >= this.#dataView.byteLength)
+		if (requiredSize > this.#dataView.byteLength)
 		{
 			this.#expand(requiredSize);
 		}
