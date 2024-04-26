@@ -20,6 +20,10 @@ export class BinaryWriter
 
 	#position : number;
 
+	/**
+	 * @param isLittleEndian Whether to write numbers in little-endian format. Defaults to true.
+	 * @param bufferSize The default buffer size. The buffer will also expand by this size when it runs out of space. Defaults to 65536.
+	 */
 	constructor(isLittleEndian = true, bufferSize = 65536)
 	{
 		this.isLittleEndian = isLittleEndian;

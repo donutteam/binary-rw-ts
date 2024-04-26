@@ -21,6 +21,10 @@ export class BinaryReader
 
 	#position : number;
 
+	/**
+	 * @param data The data to read.
+	 * @param isLittleEndian Whether to read numbers in little-endian format. Defaults to true.
+	 */
 	constructor(data : ArrayBuffer | Uint8Array, isLittleEndian = true)
 	{
 		const arrayBuffer = data instanceof ArrayBuffer
